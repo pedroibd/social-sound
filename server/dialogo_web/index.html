@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diálogo</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<style>
+  :root { --bg:#f8fafc; --card:#fff; --line:#e2e8f0; --ink:#1e293b; --muted:#64748b; --accent:#dc2626; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 20px; }
+  h1 { margin: 0 0 4px; font-size: 22px; font-weight: 900; letter-spacing: -.02em; }
+  .sub { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-bottom: 18px; }
+  .card:last-child { margin-bottom: 0; }
+  label.t { display: block; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  textarea { width: 100%; min-height: 250px; resize: vertical; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font: 15px/1.6 system-ui, sans-serif; color: var(--ink); background: #f8fafc; outline: none; }
+  textarea:focus { border-color: var(--accent); }
+  #srt { min-height: 240px; font: 13px/1.5 ui-monospace, Consolas, monospace; background: #fff; }
+  .dica { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .voz { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .voz:first-of-type { border-top: 0; padding-top: 0; }
+  .voz .nome { font-weight: 800; }
+  .voz .nome small { font-weight: 400; color: var(--muted); }
+  .voz .linha { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .voz.off { opacity: .55; }
+  select, input[type=number] { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: 13px; background: #fff; max-width: 100%; }
+  input[type=number] { width: 70px; }
+  .opts { display: grid; gap: 10px; font-size: 13px; }
+  .opts .l { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+  button.b { border: 0; border-radius: 12px; padding: 11px 18px; font-weight: 800; font-size: 14px; cursor: pointer; background: #e2e8f0; color: #334155; }
+  button.b.p { background: var(--accent); color: #fff; }
+  button.b:disabled { opacity: .5; cursor: default; }
+  button.link { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 700; font-size: 12px; text-decoration: underline; cursor: pointer; }
+  a.b { text-decoration: none; display: inline-block; }
+  .prog { display: none; padding: 12px; border: 1px solid #fecaca; background: #fef2f2; border-radius: 12px; font-size: 13px; margin-bottom: 12px; }
+  .barra { height: 8px; background: #fee2e2; border-radius: 6px; margin-top: 8px; overflow: hidden; }
+  .barra i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .4s; }
+  .erro { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 10px; padding: 8px 12px; font-size: 12px; margin-bottom: 10px; }
+  audio { width: 100%; margin: 6px 0 12px; }
+  #info { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Diálogo com várias vozes</h1>
+  <p class="sub">Escreva as falas como <b>Nome: fala</b>, escolha uma voz para cada personagem e gere um áudio só (com a legenda).</p>
+  <div class="grid">
+    <div>
+      <section class="card">
+        <label class="t" for="roteiro">Roteiro com falas</label>
+        <textarea id="roteiro" placeholder="Narrador: Era uma noite chuvosa.&#10;Maria: Você ouviu isso?&#10;João: Foi só o vento.&#10;&#10;Narrador: Mas o barulho continuou."></textarea>
+        <div class="dica">Uma fala por linha, no formato <b>Nome: fala</b>. Linhas sem nome usam a voz do Narrador. Uma linha em branco separa os blocos (pausa maior). Pausas: &lt;pause 1s&gt;. <button class="link" id="exemplo">Inserir um exemplo</button></div>
+      </section>
+      <section class="card">
+        <label class="t">Vozes</label>
+        <div id="vozes"></div>
+        <div class="dica">O tom só funciona em vozes sem transcrição (as vozes padrão e as suas clonadas sem transcrição). Personagens sem a marca "é personagem" ficam como texto comum, lido pelo Narrador.</div>
+      </section>
+    </div>
+    <div>
+      <section class="card">
+        <label class="t">Opções</label>
+        <div class="opts">
+          <div class="l">Pausa entre as falas <input type="number" id="pFalas" value="0.5" min="0" max="5" step="0.1"> s</div>
+          <div class="l">Pausa entre blocos (linha em branco) <input type="number" id="pBloco" value="0.8" min="0" max="5" step="0.1"> s</div>
+          <div class="l">Máx. de caracteres por legenda <input type="number" id="maxc" value="42" min="15" max="120"></div>
+          <label class="l"><input type="checkbox" id="nomeLeg" checked> Mostrar o nome de quem fala na legenda</label>
+        </div>
+        <div class="row"><button class="b p" id="gerar">Gerar diálogo</button></div>
+      </section>
+      <section class="card">
+        <label class="t">Resultado</label>
+        <div class="prog" id="prog"><div id="progTxt"></div><div class="barra"><i id="barra"></i></div></div>
+        <div id="erros"></div>
+        <div id="info"></div>
+        <audio id="player" controls style="display:none"></audio>
+        <textarea id="srt" readonly placeholder="A legenda aparece aqui."></textarea>
+        <div class="row">
+          <a class="b" id="baixarAudio" style="display:none"><button class="b p" type="button">Baixar áudio (.wav)</button></a>
+          <button class="b" id="baixarSrt" disabled>Baixar .srt</button>
+          <button class="b" id="copiar" disabled>Copiar legenda</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  var TONS = [["", "Natural"], ["high energy, excited", "Animado"], ["serious, formal", "Sério"], ["whispering", "Sussurro"],
+              ["very calm and soothing", "Calmo"], ["dramatic, lots of emotion", "Dramático"], ["angry, intense", "Bravo"],
+              ["sad, soft, slow", "Triste"], ["cheerful, smiling", "Alegre"]];
+  var voz = { lista: [] };          // [{id, label}]
+  var narrador = { voz: "", estilo: "" };
+  var personagens = [];             // [{nome, falas, voz, estilo, ativo}]
+  var memoria = {};                 // lembra as escolhas por nome
+  try { memoria = JSON.parse(localStorage.getItem("socialsound:dialogo") || "{}"); } catch (e) {}
+
+  function chave(s) { return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/\s+/g, " "); }
+  function salvar() { try { localStorage.setItem("socialsound:dialogo", JSON.stringify(memoria)); } catch (e) {} }
+  function mmss(s) { s = Math.round(s); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }
+  function mostrarErro(msg) { $("erros").innerHTML = ""; var e = document.createElement("div"); e.className = "erro"; e.textContent = msg; $("erros").appendChild(e); }
+
+  function opcoesVoz(sel, atual) {
+    sel.innerHTML = "";
+    var grupos = { "Minhas vozes": voz.lista.filter(function (v) { return v.id.indexOf("mine:") === 0; }),
+                   "Vozes padrão": voz.lista.filter(function (v) { return v.id.indexOf("preset:") === 0; }) };
+    Object.keys(grupos).forEach(function (g) {
+      if (!grupos[g].length) return;
+      var og = document.createElement("optgroup"); og.label = g;
+      grupos[g].forEach(function (v) { var o = document.createElement("option"); o.value = v.id; o.textContent = v.label; og.appendChild(o); });
+      sel.appendChild(og);
+    });
+    if (atual) sel.value = atual;
+  }
+  function opcoesTom(sel, atual) {
+    sel.innerHTML = "";
+    TONS.forEach(function (t) { var o = document.createElement("option"); o.value = t[0]; o.textContent = t[1]; sel.appendChild(o); });
+    sel.value = atual || "";
+  }
+
+  function desenhar() {
+    var box = $("vozes"); box.innerHTML = "";
+    function linha(titulo, sub, cfg, extra, onchange) {
+      var d = document.createElement("div"); d.className = "voz" + (extra && extra.off ? " off" : "");
+      var n = document.createElement("div"); n.className = "nome"; n.innerHTML = ""; n.appendChild(document.createTextNode(titulo + " "));
+      var sm = document.createElement("small"); sm.textContent = sub; n.appendChild(sm); d.appendChild(n);
+      var l = document.createElement("div"); l.className = "linha";
+      var sv = document.createElement("select"); opcoesVoz(sv, cfg.voz); sv.onchange = function () { cfg.voz = sv.value; onchange(); };
+      var st = document.createElement("select"); opcoesTom(st, cfg.estilo); st.onchange = function () { cfg.estilo = st.value; onchange(); };
+      l.appendChild(sv); l.appendChild(st);
+      if (extra && extra.check) {
+        var lb = document.createElement("label"); lb.style.fontSize = "12px";
+        var ck = document.createElement("input"); ck.type = "checkbox"; ck.checked = cfg.ativo !== false;
+        ck.onchange = function () { cfg.ativo = ck.checked; onchange(); desenhar(); };
+        lb.appendChild(ck); lb.appendChild(document.createTextNode(" é personagem")); l.appendChild(lb);
+      }
+      d.appendChild(l); box.appendChild(d);
+    }
+    linha("Narrador", "(linhas sem nome)", narrador, null, function () { memoria["__narrador"] = { voz: narrador.voz, estilo: narrador.estilo }; salvar(); });
+    personagens.forEach(function (p) {
+      linha(p.nome, "(" + p.falas + (p.falas === 1 ? " fala)" : " falas)"), p, { check: true, off: p.ativo === false },
+        function () { memoria[chave(p.nome)] = { voz: p.voz, estilo: p.estilo, ativo: p.ativo }; salvar(); });
+    });
+    if (!personagens.length) { var d = document.createElement("div"); d.className = "dica"; d.textContent = "Nenhum personagem encontrado ainda. Escreva falas como  Maria: Olá!"; box.appendChild(d); }
+  }
+
+  var temporizador = null;
+  async function detectar() {
+    try {
+      var r = await (await fetch("/api/dialogo/detectar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ texto: $("roteiro").value }) })).json();
+      var antigos = {}; personagens.forEach(function (p) { antigos[chave(p.nome)] = p; });
+      personagens = r.personagens.map(function (p, i) {
+        var k = chave(p.nome), lembrado = memoria[k] || {}, anterior = antigos[k] || {};
+        var padrao = voz.lista.length ? voz.lista[(i + 1) % voz.lista.length].id : "";
+        return { nome: p.nome, falas: p.falas, voz: anterior.voz || lembrado.voz || padrao, estilo: anterior.estilo !== undefined ? anterior.estilo : (lembrado.estilo || ""),
+                 ativo: anterior.ativo !== undefined ? anterior.ativo : (lembrado.ativo !== false) };
+      });
+      desenhar();
+    } catch (e) { /* servidor ainda ligando */ }
+  }
+  $("roteiro").oninput = function () { clearTimeout(temporizador); temporizador = setTimeout(detectar, 600); };
+  $("exemplo").onclick = function () {
+    $("roteiro").value = "Narrador: Era uma noite chuvosa na pequena vila.\nMaria: Você ouviu isso?\nJoão: Foi só o vento, Maria.\n\nNarrador: Mas o barulho continuou, cada vez mais perto.\nMaria: <pause 0.5s> Eu vou olhar pela janela.\nJoão: Não faça isso!";
+    detectar();
+  };
+
+  async function carregarVozes() {
+    try {
+      var d = await (await fetch("/voices")).json();
+      voz.lista = d.mine.map(function (m) { return { id: "mine:" + m.name, label: m.name }; })
+        .concat(d.presets.map(function (p) { return { id: "preset:" + p.id, label: p.label }; }));
+      var lembrado = memoria["__narrador"] || {};
+      narrador.voz = lembrado.voz && voz.lista.some(function (v) { return v.id === lembrado.voz; }) ? lembrado.voz : (voz.lista[0] ? voz.lista[0].id : "");
+      narrador.estilo = lembrado.estilo || "";
+      desenhar(); detectar();
+    } catch (e) { $("vozes").textContent = "O servidor de voz não respondeu. Abra o programa pelo iniciar.bat."; }
+  }
+
+  var inicio = 0, relogio = null;
+  function parar() { clearInterval(relogio); $("prog").style.display = "none"; $("gerar").disabled = false; $("gerar").textContent = "Gerar diálogo"; }
+
+  async function gerar() {
+    $("erros").innerHTML = ""; $("info").textContent = ""; $("srt").value = ""; $("player").style.display = "none"; $("baixarAudio").style.display = "none";
+    $("baixarSrt").disabled = $("copiar").disabled = true;
+    if (!$("roteiro").value.trim()) { mostrarErro("Escreva o roteiro."); return; }
+    if (!narrador.voz) { mostrarErro("Escolha a voz do Narrador."); return; }
+    $("gerar").disabled = true; $("gerar").textContent = "Gerando..."; $("prog").style.display = "block"; $("progTxt").textContent = "Começando..."; $("barra").style.width = "0";
+    inicio = Date.now();
+    relogio = setInterval(function () { $("progTxt").dataset.t = mmss((Date.now() - inicio) / 1000); $("progTxt").textContent = ($("progTxt").dataset.m || "Trabalhando...") + "   " + $("progTxt").dataset.t; }, 1000);
+    try {
+      var corpo = { texto: $("roteiro").value, narrador: { voz: narrador.voz, estilo: narrador.estilo },
+        personagens: personagens.filter(function (p) { return p.ativo !== false; }).map(function (p) { return { nome: p.nome, voz: p.voz, estilo: p.estilo }; }),
+        pausa_falas: parseFloat($("pFalas").value || "0.5"), para_pause: parseFloat($("pBloco").value || "0.8"),
+        srt_chars: parseInt($("maxc").value || "42", 10), nome_na_legenda: $("nomeLeg").checked };
+      var r = await fetch("/api/dialogo/gerar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+      if (!r.ok) { var e = await r.json().catch(function () { return {}; }); throw new Error(e.detail || ("Erro " + r.status)); }
+      var jid = (await r.json()).job;
+      for (;;) {
+        await new Promise(function (ok) { setTimeout(ok, 1200); });
+        var s = await (await fetch("/api/dialogo/job/" + jid)).json();
+        $("progTxt").dataset.m = s.msg || "Trabalhando...";
+        $("barra").style.width = (s.total ? Math.round(100 * s.atual / s.total) : 0) + "%";
+        if (s.status === "erro") throw new Error(s.msg);
+        if (s.status === "pronto") { mostrar(s); break; }
+      }
+    } catch (e) { mostrarErro(String(e.message || e).slice(0, 400)); }
+    parar();
+  }
+
+  function mostrar(s) {
+    $("player").src = s.audio; $("player").style.display = "block";
+    $("baixarAudio").href = s.audio; $("baixarAudio").download = "dialogo.wav"; $("baixarAudio").style.display = "inline-block";
+    $("srt").value = s.srt; $("baixarSrt").disabled = $("copiar").disabled = false;
+    $("info").textContent = s.falas.length + " falas • " + mmss(s.duracao);
+  }
+
+  $("gerar").onclick = gerar;
+  $("baixarSrt").onclick = function () {
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([$("srt").value], { type: "text/plain;charset=utf-8" }));
+    a.download = "dialogo.srt"; document.body.appendChild(a); a.click(); a.remove();
+  };
+  $("copiar").onclick = async function () {
+    try { await navigator.clipboard.writeText($("srt").value); } catch (e) { $("srt").select(); document.execCommand("copy"); }
+    $("copiar").textContent = "Copiado ✔"; setTimeout(function () { $("copiar").textContent = "Copiar legenda"; }, 1500);
+  };
+  carregarVozes();
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Ambiente Python e dependências
+.venv/
+venv/
+__pycache__/
+*.pyc
+node_modules/
+
+# Dados pessoais e arquivos gerados (nunca enviar)
+server/voices/
+server/saidas/
+server/presets/
+*.wav
+*.mp3
+*.flac
+*.srt
+
+# Build local do código-fonte (o resultado vai para server/web, que É versionado)
+web/dist/
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

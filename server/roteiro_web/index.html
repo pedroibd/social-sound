@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roteiro</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<style>
+  :root { --bg:#f8fafc; --card:#fff; --line:#e2e8f0; --ink:#1e293b; --muted:#64748b; --accent:#dc2626; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 20px; }
+  h1 { margin: 0 0 4px; font-size: 22px; font-weight: 900; letter-spacing: -.02em; }
+  .sub { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+  label.t { display: block; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  textarea { width: 100%; min-height: 330px; resize: vertical; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font: 15px/1.6 system-ui, sans-serif; color: var(--ink); background: #f8fafc; outline: none; }
+  textarea:focus { border-color: var(--accent); }
+  .opts { margin: 14px 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 10px; font-size: 13px; }
+  .opts .l { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .opts b { font-weight: 700; }
+  select, input[type=number] { border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; font-size: 13px; background: #fff; }
+  input[type=number] { width: 64px; }
+  .estado { font-size: 12px; color: var(--muted); padding-left: 24px; }
+  .estado a, .estado button.link { color: var(--accent); font-weight: 700; background: none; border: 0; padding: 0; cursor: pointer; font-size: 12px; text-decoration: underline; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  button.b { border: 0; border-radius: 12px; padding: 11px 18px; font-weight: 800; font-size: 14px; cursor: pointer; background: #e2e8f0; color: #334155; }
+  button.b.p { background: var(--accent); color: #fff; }
+  button.b:disabled { opacity: .5; cursor: default; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; }
+  #stats { font-size: 12px; color: var(--muted); }
+  #saida { min-height: 330px; max-height: 62vh; overflow: auto; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font: 15px/1.7 system-ui, sans-serif; white-space: pre-wrap; background: #fff; }
+  #saida.vazio { color: #94a3b8; }
+  .m { border-radius: 5px; padding: 0 2px; cursor: pointer; }
+  .m.acento { background: #bbf7d0; }
+  .m.numero, .m.abrev { background: #fde68a; }
+  .m.virgula { background: #bfdbfe; font-weight: 900; }
+  .m.off { background: transparent; text-decoration: line-through; color: #94a3b8; }
+  .m.virgula.off { text-decoration: none; }
+  .leg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: 10px 0 14px; }
+  .leg i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; vertical-align: -2px; margin-right: 5px; }
+  .aviso { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 8px 12px; font-size: 12px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Preparar roteiro</h1>
+  <p class="sub">Coloca os acentos que faltam, escreve números por extenso e põe vírgulas nas frases longas, para a narração sair mais natural. Você revisa tudo antes de enviar.</p>
+  <div class="grid">
+    <section class="card">
+      <label class="t" for="entrada">Seu roteiro</label>
+      <textarea id="entrada" placeholder="Cole aqui o roteiro..."></textarea>
+
+      <div class="opts">
+        <div>
+          <label class="l"><input type="checkbox" id="oAcentos" checked> <b>Acentos</b></label>
+          <div class="l" style="padding-left:24px;margin-top:6px">
+            Motor
+            <select id="motor"><option value="auto">Automático</option><option value="mark">Modelo Mark</option><option value="dicionario">Dicionário</option></select>
+            Cuidado
+            <select id="margem"><option value="0">Corrigir tudo</option><option value="0.5">Equilibrado</option><option value="1.5">Só os mais certos</option></select>
+          </div>
+          <div class="estado" id="estadoMark">Verificando o modelo de acentos...</div>
+        </div>
+        <label class="l"><input type="checkbox" id="oNumeros" checked> <b>Números e abreviações por extenso</b> <span style="color:#94a3b8">(7 → sete, Sr. → Senhor, R$ 10 → dez reais)</span></label>
+        <div class="l">
+          <label class="l"><input type="checkbox" id="oVirgulas" checked> <b>Vírgulas em frases longas</b></label>
+          <span style="margin-left:4px">acima de</span><input type="number" id="maxp" value="14" min="6" max="40"><span>palavras</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="b p" id="go">Humanizar</button>
+        <button class="b" id="limpar">Limpar</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="head"><label class="t">Resultado</label><span id="stats"></span></div>
+      <div id="avisos"></div>
+      <div id="saida" class="vazio">O resultado aparece aqui. Clique numa parte colorida para desfazer a mudança.</div>
+      <div class="leg"><span><i style="background:#bbf7d0"></i>acento</span><span><i style="background:#fde68a"></i>número ou abreviação</span><span><i style="background:#bfdbfe"></i>vírgula</span></div>
+      <div class="row">
+        <button class="b" id="copiar" disabled>Copiar texto</button>
+        <button class="b p" id="enviar" disabled>Enviar para a Narração</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  var itens = [], desfeitos = {};
+
+  function textoFinal() {
+    return itens.map(function (it, i) {
+      var off = desfeitos[i];
+      if (it.t === "texto") return it.v;
+      if (it.t === "virgula") return off ? "" : ",";
+      return off ? it.de : it.para;
+    }).join("");
+  }
+
+  function render() {
+    var box = $("saida");
+    box.textContent = "";
+    box.classList.remove("vazio");
+    itens.forEach(function (it, i) {
+      if (it.t === "texto") { box.appendChild(document.createTextNode(it.v)); return; }
+      var s = document.createElement("span");
+      var off = !!desfeitos[i];
+      s.className = "m " + it.t + (off ? " off" : "");
+      if (it.t === "virgula") { s.textContent = off ? "‸" : ","; s.title = "Vírgula de respiração. Clique para tirar."; }
+      else { s.textContent = off ? it.de : it.para; s.title = (off ? "Desfeito. Original: " : "Era: ") + it.de + ". Clique para " + (off ? "refazer." : "desfazer."); }
+      s.onclick = function () { desfeitos[i] = !desfeitos[i]; if (!desfeitos[i]) delete desfeitos[i]; render(); };
+      box.appendChild(s);
+    });
+    var ativo = itens.length > 0;
+    $("copiar").disabled = !ativo; $("enviar").disabled = !ativo;
+  }
+
+  async function humanizar() {
+    var texto = $("entrada").value;
+    if (!texto.trim()) { $("entrada").focus(); return; }
+    $("go").disabled = true; $("go").textContent = "Trabalhando...";
+    try {
+      var r = await fetch("/api/roteiro/humanizar", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texto: texto, acentos: $("oAcentos").checked, motor: $("motor").value, margem: parseFloat($("margem").value),
+                               numeros: $("oNumeros").checked, virgulas: $("oVirgulas").checked, max_palavras: parseInt($("maxp").value || "14", 10) }) });
+      if (!r.ok) throw new Error(await r.text());
+      var d = await r.json();
+      itens = d.itens; desfeitos = {};
+      var c = d.contagem;
+      $("stats").textContent = c.acentos + " acentos • " + c.expansoes + " por extenso • " + c.virgulas + " vírgulas" + (d.motor ? " • motor: " + d.motor : "");
+      $("avisos").innerHTML = "";
+      d.avisos.forEach(function (a) { var x = document.createElement("div"); x.className = "aviso"; x.textContent = a; $("avisos").appendChild(x); });
+      render();
+    } catch (e) {
+      $("saida").classList.add("vazio"); $("saida").textContent = "Não consegui processar: " + e.message + " (o servidor do Social Sound está ligado?)";
+    }
+    $("go").disabled = false; $("go").textContent = "Humanizar";
+  }
+
+  async function status() {
+    try {
+      var s = await (await fetch("/api/roteiro/status")).json(), el = $("estadoMark");
+      if (s.mark_pronto) { el.textContent = "Modelo Mark pronto ✔ (roda no seu computador, na CPU)"; return; }
+      if (!s.onnxruntime) { el.innerHTML = "Para usar o modelo Mark, rode o <b>instalar.bat</b> de novo (uma vez). Enquanto isso o dicionário simples é usado."; return; }
+      if (s.download.rodando) {
+        var mb = function (n) { return (n / 1048576).toFixed(0); };
+        el.textContent = "Baixando o modelo... " + mb(s.download.baixado) + " de " + (s.download.total ? mb(s.download.total) : "?") + " MB";
+        setTimeout(status, 1500); return;
+      }
+      if (s.mark_baixado && s.mark_erro) {
+        el.innerHTML = "";
+        var t = document.createElement("div"); t.textContent = "Modelo Mark com problema: " + s.mark_erro + ". Usando o dicionário."; el.appendChild(t);
+        var d = document.createElement("div"); d.textContent = "Arquivos em: " + s.pasta + " "; el.appendChild(d);
+        var b = document.createElement("button"); b.className = "link"; b.textContent = "Baixar de novo";
+        b.onclick = async function () { await fetch("/api/roteiro/baixar-modelo?refazer=true", { method: "POST" }); status(); };
+        d.appendChild(b);
+        return;
+      }
+      if (!s.mark_baixado) {
+        el.innerHTML = (s.download.erro ? "Falha no download (" + s.download.erro + "). " : "Modelo Mark não baixado (42 MB). ") +
+          '<button class="link" id="baixar">Baixar agora</button>';
+        $("baixar").onclick = async function () { await fetch("/api/roteiro/baixar-modelo", { method: "POST" }); status(); };
+      }
+    } catch (e) { $("estadoMark").textContent = "Servidor do Social Sound não respondeu."; }
+  }
+
+  $("go").onclick = humanizar;
+  $("limpar").onclick = function () { $("entrada").value = ""; itens = []; desfeitos = {}; $("saida").className = "vazio"; $("saida").id = "saida"; $("saida").textContent = "O resultado aparece aqui. Clique numa parte colorida para desfazer a mudança."; $("stats").textContent = ""; $("avisos").innerHTML = ""; $("copiar").disabled = $("enviar").disabled = true; };
+  $("copiar").onclick = async function () {
+    var t = textoFinal();
+    try { await navigator.clipboard.writeText(t); }
+    catch (e) { var a = document.createElement("textarea"); a.value = t; document.body.appendChild(a); a.select(); document.execCommand("copy"); a.remove(); }
+    $("copiar").textContent = "Copiado ✔"; setTimeout(function () { $("copiar").textContent = "Copiar texto"; }, 1500);
+  };
+  $("enviar").onclick = function () {
+    try { localStorage.setItem("socialsound:texto-pendente", textoFinal()); localStorage.setItem("socialsound:ultimo-roteiro", textoFinal()); } catch (e) {}
+    if (window.parent !== window) window.parent.postMessage({ tipo: "ir-para-narracao" }, location.origin);
+    else location.href = "/";
+  };
+  status();
+</script>
+</body>
+</html>
