@@ -22,6 +22,7 @@ Nada abaixo está dentro deste repositório. O instalador baixa direto das fonte
 | FastAPI | MIT | fastapi.tiangolo.com |
 | Uvicorn | BSD-3 | uvicorn.org |
 | python-multipart | Apache-2.0 | pypi.org/project/python-multipart |
+| uv (opcional, só no Linux/macOS, para baixar o Python 3.11) | MIT / Apache-2.0 | github.com/astral-sh/uv |
 
 **Aba Roteiro** (instalada pelo `instalar.bat`):
 
@@ -41,7 +42,7 @@ Nada abaixo está dentro deste repositório. O instalador baixa direto das fonte
 
 **Interface** (já compilada em `server/web`): React (MIT), Vite (MIT), Tailwind CSS (MIT), lucide-react (ISC).
 
-**Editor de vídeo:** a aba "Edição de vídeo" só abre o AutoEditor MS que cada pessoa já tem instalado. O AutoEditor MS **não** faz parte deste repositório e tem licença própria, que **não** permite uso comercial (https://github.com/pedroibd/autoeditor-ms). Não o redistribua.
+**Editor de vídeo:** a aba "Edição de vídeo" só abre o AutoEditor Mod que cada pessoa já tem instalado. O AutoEditor MS **não** faz parte deste repositório e tem licença própria, que **não** permite uso comercial ([github.com/pedroibd/autoeditor-ms](https://github.com/pedroibd/autoeditor-ms)). Não o redistribua.
 
 ## 3. Uso responsável
 

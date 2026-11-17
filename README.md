@@ -1,6 +1,6 @@
 # Social Sound
 
-Ferramenta **local** para Windows que junta, em uma janela só:
+Ferramenta **local** para Windows, Linux e macOS que junta, em uma janela só:
 
 - **Roteiro**: prepara o texto para a narração (acentos, números, abreviações e pausas de respiração);
 - **Narração**: gera voz com clonagem de voz (VoxCPM2);
@@ -15,13 +15,21 @@ Tudo roda no seu computador. A internet só é usada na instalação, para baixa
 
 ## Requisitos
 
-- Windows
-- Python 3.11 (marque **Add python.exe to PATH** na instalação)
-- Placa NVIDIA com drivers atualizados (o modelo pede cerca de 8 GB de VRAM; se faltar, ele muda sozinho para a CPU)
+- **Windows, Linux ou macOS** (veja a tabela abaixo)
+- Python 3.11 (no Windows, marque **Add python.exe to PATH** na instalação)
+- Placa NVIDIA com drivers atualizados (o modelo pede cerca de 8 GB de VRAM; se faltar, ele muda sozinho para a CPU). Sem placa NVIDIA, tudo funciona na CPU, só que bem mais devagar.
 - Espaço livre em disco para os modelos (vários GB)
 - Opcional: o [AutoEditor MS](https://github.com/pedroibd/autoeditor-ms), para usar a aba "Edição de vídeo". Ele **não** faz parte deste repositório e tem licença própria.
 
-## Instalação
+| Sistema | Arquivos | Observação |
+|---|---|---|
+| Windows | `.bat` | Sistema em que foi criado e mais testado |
+| Linux | `.sh` | Placa NVIDIA usa CUDA; sem ela, usa a CPU |
+| macOS (Apple Silicon ou Intel) | `.command` (duplo clique) ou `.sh` | Roda na CPU. Em Mac com Intel, o VoxCPM pode não instalar (veja abaixo) |
+
+> Os scripts de Linux e macOS são novos e foram verificados só quanto à lógica de ligar e desligar os servidores. A instalação completa neles ainda não foi testada em máquinas reais.
+
+## Instalação (Windows)
 
 1. Baixe este repositório: botão verde **Code → Download ZIP** (ou `git clone`) e extraia numa pasta de fácil acesso, por exemplo `C:\SocialSound`.
 2. Abra o `config.bat` com o Bloco de Notas e troque `COLE_O_CAMINHO_DO_AutoEditor-MS_AQUI` pelo caminho da sua pasta do AutoEditor MS (a que tem `server` e `out` dentro). Se você não usa o editor, pode deixar como está.
@@ -29,7 +37,29 @@ Tudo roda no seu computador. A internet só é usada na instalação, para baixa
 
 Se algum download falhar, rode o `instalar.bat` de novo: o que já foi baixado não é baixado outra vez.
 
-## Uso diário
+## Instalação (Linux e macOS)
+
+1. Baixe o repositório (Code → Download ZIP ou `git clone`) e extraia numa pasta, por exemplo `~/SocialSound`.
+2. Abra um terminal nessa pasta e libere a execução dos scripts (só uma vez):
+   ```
+   chmod +x *.sh *.command
+   ```
+   No Mac, se o ZIP veio do navegador e o sistema bloquear os arquivos `.command` ("desenvolvedor não identificado"), rode também `xattr -dr com.apple.quarantine .` na pasta.
+3. Se for usar a aba de edição de vídeo, edite o `config.sh` e coloque o caminho do seu AutoEditor em `AUTOEDITOR_DIR`. Ele precisa do Node.js (o `runtime` do AutoEditor, se existir, é usado automaticamente).
+4. Rode `./instalar.sh` (no Mac, também dá para dar duplo clique em `instalar.command`). Baixa vários GB.
+
+**Python 3.11:** se não tiver, instale (`brew install python@3.11` no Mac; `sudo apt install python3.11 python3.11-venv` no Debian/Ubuntu). Se a sua distribuição Linux não tiver o 3.11, instale o [uv](https://docs.astral.sh/uv/): o `instalar.sh` o usa para baixar o Python 3.11 sozinho.
+
+**Mac com Intel:** o PyTorch mais novo não existe para esse Mac. O instalador usa o 2.2.2, e o VoxCPM pode não funcionar com ele. Se falhar, a narração não é suportada nesse computador.
+
+**Mac com chip Apple:** a narração roda na CPU por padrão. Dá para tentar a GPU do Mac com `export DEVICE=mps` no `config.sh`, mas isso não foi testado.
+
+## Uso diário (Linux e macOS)
+
+- **Ligar:** `./iniciar.sh` (Mac: duplo clique em `iniciar.command`). Os servidores rodam em segundo plano e abrem a janela com as abas no Chrome, Edge, Brave ou Chromium, se algum estiver instalado; senão, no navegador padrão. Os logs ficam na pasta `logs`.
+- **Desligar:** `./parar.sh` (Mac: `parar.command`). Fechar só a janela não desliga os servidores.
+
+## Uso diário (Windows)
 
 - **Ligar:** duplo clique em `iniciar.bat`. Abre uma janela própria (Edge, sem barra de endereço) com as cinco abas. Duas janelas pretas ficam minimizadas (voz e editor): **não feche**.
 - **Desligar:** duplo clique em `parar.bat`. Fechar só a janela do programa **não** desliga os servidores nem libera a placa de vídeo.
@@ -48,7 +78,7 @@ O `instalar.bat` baixa o modelo de acentos [Mark](https://huggingface.co/Mytholo
 - Escreva ou carregue um TXT/SRT, escolha o tom e gere. **BAIXAR SRT** baixa a legenda.
 - Vozes padrão: criadas na primeira vez que você usa cada uma (`server\voices\_padrao`).
 - Pausas: `<short pause>` = 0,5 s · `<pause 1s>` = 1 s (qualquer valor) · `<long pause>` = 1,2 s. Cada quebra de linha vira uma pausa de parágrafo (padrão 0,8 s, ajustável no painel de tom).
-- Para forçar a CPU, coloque `set DEVICE=cpu` no `iniciar.bat`, antes do `start`.
+- Para forçar a CPU, coloque `set DEVICE=cpu` no `iniciar.bat` (Windows), antes do `start`, ou `export DEVICE=cpu` no `config.sh` (Linux/macOS).
 
 ### Diálogo
 - Escreva uma fala por linha no formato `Nome: fala`. Linhas sem nome usam a voz do Narrador.
@@ -69,7 +99,9 @@ Só carrega quando você abre a aba pela primeira vez. A narração baixada vai 
 
 ```
 social-sound/
-├── instalar.bat / iniciar.bat / parar.bat / _editor.bat / config.bat
+├── instalar / iniciar / parar    .bat (Windows) · .sh e .command (Linux/macOS)
+├── config.bat / config.sh        configuração (caminho do AutoEditor)
+├── _editor.bat / _comum.sh       arquivos de apoio dos scripts
 ├── server/          servidor Python (FastAPI) e interface já compilada
 │   ├── server.py, roteiro.py, dialogo.py, legenda.py
 │   ├── web/             tela de Narração (compilada)
@@ -103,4 +135,4 @@ Código deste repositório sob licença [MIT](LICENSE). Modelos e programas de t
 
 **Use com responsabilidade:** clone apenas a sua própria voz ou a de quem autorizou, e siga as regras de aviso de conteúdo sintético das plataformas onde publicar.
 
-Autor: **Pedroibd** · Comunidade: [IA Voz e Vídeo no Discord](https://discord.gg/nEjHQzgz3d)
+Autor: **Pedoibd** · Comunidade: [IA Voz e Vídeo no Discord](https://discord.gg/nEjHQzgz3d)
