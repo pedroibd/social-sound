@@ -79,7 +79,12 @@ def synth(model, text, style="", ref=None, transcript=None, seed=None):
         else:  # clonagem controlável (aceita estilo)
             kw.update(reference_wav_path=str(ref))
     if seed is not None:
-        kw["seed"] = seed
+        # O VoxCPM.generate() não aceita o argumento "seed": fixamos a semente direto no random/numpy/torch.
+        random.seed(seed)
+        np.random.seed(seed % (2**32))
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
     return np.asarray(model.generate(**kw), dtype=np.float32).reshape(-1)
 
 
